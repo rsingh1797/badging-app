@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photo Capture and Badge Printing</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #4D148C; /* FedEx Purple */
+            color: #fff;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 26px;
+            margin: 20px 0;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 340px;
+            height: 280px;
+            color: #333;
+        }
+
+        .frame {
+            position: relative;
+            width: 320px;
+            height: 240px;
+            border-radius: 10px;
+            overflow: hidden;
+            background-color: white;
+        }
+
+        #camera, #photoPreview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform-origin: center center;
+        }
+
+        #photoPreview {
+            display: none;
+            border-radius: 10px;
+        }
+
+        .button-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            background-color: #FF6600; /* FedEx Orange */
+            color: white;
+            cursor: pointer;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            background-color: #E65C00;
+            transform: scale(1.05);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px;
+            border-radius: 8px;
+        }
+
+        .zoom-controls button {
+            padding: 5px 10px;
+            background-color: rgba(255, 255, 255, 0.3);
+            color: white;
+            border: none;
+        }
+
+        .zoom-controls button:hover {
+            background-color: rgba(255, 255, 255, 0.5);
+        }
+
+    </style>
+    <script>
+        let video;
+        let currentZoom = 1;
+
+        async function capturePhoto() {
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+
+            const videoWidth = video.videoWidth;
+            const videoHeight = video.videoHeight;
+
+            canvas.width = videoWidth;
+            canvas.height = videoHeight;
+
+            // Capture the zoomed-in portion
+            const scaledWidth = videoWidth / currentZoom;
+            const scaledHeight = videoHeight / currentZoom;
+            const offsetX = (videoWidth - scaledWidth) / 2;
+            const offsetY = (videoHeight - scaledHeight) / 2;
+
+            context.drawImage(video, offsetX, offsetY, scaledWidth, scaledHeight, 0, 0, videoWidth, videoHeight);
+
+            const capturedPhoto = canvas.toDataURL("image/jpeg");
+            document.querySelector("#photoPreview").src = capturedPhoto;
+            document.querySelector("#photoPreview").style.display = "block";
+        }
+
+        async function startCamera() {
+            video = document.getElementById('camera');
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then((stream) => {
+                    video.srcObject = stream;
+                    video.play();
+                })
+                .catch(err => {
+                    console.error("Camera access error:", err);
+                    alert("Camera access denied or not available.");
+                });
+        }
+
+        function retakePhoto() {
+            document.querySelector("#photoPreview").style.display = "none";
+        }
+
+        function zoomIn() {
+            currentZoom += 0.1;
+            video.style.transform = `scale(${currentZoom})`;
+        }
+
+        function zoomOut() {
+            currentZoom -= 0.1;
+            if (currentZoom < 1) currentZoom = 1;
+            video.style.transform = `scale(${currentZoom})`;
+        }
+
+        function uploadPhoto() {
+            alert("Photo uploaded successfully!");
+        }
+
+        function validatePhoto() {
+            alert("Photo validated successfully!");
+        }
+
+        function publishBadge() {
+            alert("Badge published successfully!");
+        }
+
+        window.addEventListener('DOMContentLoaded', startCamera);
+    </script>
+</head>
+<body>
+    <h1>Photo Capture and Badge Printing</h1>
+
+    <div class="container">
+        <div class="card">
+            <div class="frame">
+                <video id="camera" autoplay></video>
+                <div class="zoom-controls">
+                    <button onclick="zoomIn()">Zoom In</button>
+                    <button onclick="zoomOut()">Zoom Out</button>
+                </div>
+            </div>
+            <p>Live Camera</p>
+        </div>
+
+        <div class="card">
+            <div class="frame">
+                <img id="photoPreview" alt="Photo Preview" />
+            </div>
+            <p>Captured Photo</p>
+        </div>
+    </div>
+
+    <div class="button-grid">
+        <button onclick="capturePhoto()">📸 Capture Photo</button>
+        <button onclick="retakePhoto()">🔄 Retake Photo</button>
+    </div>
+
+    <div class="button-grid">
+        <button onclick="uploadPhoto()">📤 Upload Photo</button>
+        <button onclick="validatePhoto()">✅ Validate Photo</button>
+        <button onclick="publishBadge()">🏅 Publish Badge</button>
+    </div>
+
+</body>
+</html>
